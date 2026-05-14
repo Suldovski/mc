@@ -1,1 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMenu - McDonald's Menu Inteligente Predictivo</title>
+    <meta name="description" content="Personalize sua refeição McDonald's pelo seu objetivo do dia: pós-treino, energia, leveza, foco">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        * {
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        }
+        
+        body {
+            background-color: #fafaf9;
+        }
+        
+        /* Cores personalizadas McDonald's */
+        .bg-brand-green { background-color: #2E7D32; }
+        .text-brand-green { color: #2E7D32; }
+        .border-brand-green { border-color: #2E7D32; }
+        .ring-brand-green\/10 { box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1); }
+        
+        .bg-brand-gold { background-color: #FFC107; }
+        .text-brand-gold { color: #FFC107; }
+        .border-brand-gold { border-color: #FFC107; }
+        
+        .bg-brand-dark { background-color: #1a1a1a; }
+        .text-brand-dark { color: #1a1a1a; }
+        
+        .bg-brand-bg { background-color: #fafaf9; }
+        
+        /* Transições e animações */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        
+        .hover\:-translate-y-0\.5:hover {
+            transform: translateY(-2px);
+        }
+        
+        .hover\:-translate-y-1:hover {
+            transform: translateY(-4px);
+        }
+        
+        /* Estilos específicos */
+        .text-balance {
+            text-wrap: balance;
+        }
+        
+        .tracking-tight {
+            letter-spacing: -0.025em;
+        }
+        
+        .tracking-wider {
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="bg-brand-bg font-sans text-brand-dark">
 
+<div id="root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/babel-standalone@6/babel.min.js"></script>
+
+<script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // Dados do menu
+    const GOALS = [
+        {
+            id: "post-workout",
+            name: "Pós-Treino",
+            tagline: "Foco em síntese proteica e reposição de glicogênio.",
+            accent: "green",
+            productName: "Big Mac Performance",
+            productSubtitle: "Ajustado para recuperação muscular",
+            swaps: [
+                { title: "Pão do Meio", detail: "Removido para menor carga glicêmica", tag: "-150 kcal", tone: "remove" },
+                { title: "Mix de Folhas", detail: "Dobro de alface e rúcula adicionada", tag: "+ Fibras", tone: "add" },
+                { title: "Bebida", detail: "Refrigerante substituído por água de coco", tag: "Eletrólitos", tone: "swap" }
+            ],
+            macros: { protein: 32, carbs: 24, kcal: 410 },
+            proteinPct: 80,
+            carbsPct: 33,
+            kcalPct: 50,
+            price: "R$ 34,90"
+        },
+        {
+            id: "energy",
+            name: "Mais Energia",
+            tagline: "Carboidratos complexos para o seu dia render mais.",
+            accent: "gold",
+            productName: "McMorning Power",
+            productSubtitle: "Combustível de longa duração",
+            swaps: [
+                { title: "Pão Integral", detail: "Substitui o brioche por liberação lenta de energia", tag: "+ Fibras", tone: "swap" },
+                { title: "Ovos Mexidos", detail: "Dose extra de proteína no café da manhã", tag: "+12g proteína", tone: "add" },
+                { title: "Suco de Laranja Natural", detail: "Vitamina C + frutose natural pré-treino", tag: "Vitamina C", tone: "swap" }
+            ],
+            macros: { protein: 22, carbs: 58, kcal: 520 },
+            proteinPct: 55,
+            carbsPct: 78,
+            kcalPct: 64,
+            price: "R$ 28,50"
+        },
+        {
+            id: "lightness",
+            name: "Leveza",
+            tagline: "Baixo índice glicêmico e fácil digestão.",
+            accent: "sky",
+            productName: "McSalad Bowl Citrus",
+            productSubtitle: "Refeição leve e refrescante",
+            swaps: [
+                { title: "Frango Grelhado", detail: "Sem empanado, marinado em ervas", tag: "-180 kcal", tone: "swap" },
+                { title: "Vinagrete Cítrico", detail: "Substitui molhos cremosos", tag: "-9g gordura", tone: "swap" },
+                { title: "Água com Limão", detail: "Hidratação sem açúcar adicionado", tag: "0 açúcar", tone: "add" }
+            ],
+            macros: { protein: 26, carbs: 18, kcal: 320 },
+            proteinPct: 65,
+            carbsPct: 25,
+            kcalPct: 38,
+            price: "R$ 31,90"
+        },
+        {
+            id: "focus",
+            name: "Foco",
+            tagline: "Ômega-3 e nutrientes que ajudam a concentração.",
+            accent: "violet",
+            productName: "McFish Brain Combo",
+            productSubtitle: "Energia mental sustentada",
+            swaps: [
+                { title: "Filé de Peixe Grelhado", detail: "Fonte de Ômega-3 e DHA", tag: "+ Ômega-3", tone: "add" },
+                { title: "Pão Multigrãos", detail: "Energia de liberação lenta para o cérebro", tag: "+ Fibras", tone: "swap" },
+                { title: "Chá Verde Gelado", detail: "L-teanina + cafeína moderada", tag: "Foco limpo", tone: "swap" }
+            ],
+            macros: { protein: 28, carbs: 30, kcal: 390 },
+            proteinPct: 70,
+            carbsPct: 40,
+            kcalPct: 47,
+            price: "R$ 33,50"
+        },
+        {
+            id: "indulgence",
+            name: "Indulgência",
+            tagline: "O clássico que você ama, sem culpa.",
+            accent: "rose",
+            productName: "Big Mac Original",
+            productSubtitle: "O ícone - para os dias que pedem",
+            swaps: [
+                { title: "Receita Clássica", detail: "Dois hambúrgueres, molho especial, alface, queijo", tag: "Original", tone: "add" },
+                { title: "Batata Média", detail: "Acompanhamento equilibrado", tag: "Crocante", tone: "add" },
+                { title: "Refrigerante Zero", detail: "Mesmo sabor, sem açúcar", tag: "0 açúcar", tone: "swap" }
+            ],
+            macros: { protein: 26, carbs: 44, kcal: 590 },
+            proteinPct: 65,
+            carbsPct: 60,
+            kcalPct: 72,
+            price: "R$ 29,90"
+        }
+    ];
+
+    const ACCENT_RING = {
+        green: "border-brand-green ring-brand-green/10",
+        gold: "border-brand-gold ring-yellow-500/15",
+        sky: "border-sky-500 ring-sky-500/10",
+        rose: "border-rose-500 ring-rose-500/10",
+        violet: "border-violet-500 ring-violet-500/10"
+    };
+
+    const ACCENT_DOT = {
+        green: "bg-brand-green/10 text-brand-green",
+        gold: "bg-yellow-100 text-yellow-600",
+        sky: "bg-sky-100 text-sky-600",
+        rose: "bg-rose-100 text-rose-600",
+        violet: "bg-violet-100 text-violet-600"
+    };
+
+    const ACCENT_TEXT = {
+        green: "text-brand-green",
+        gold: "text-yellow-600",
+        sky: "text-sky-600",
+        rose: "text-rose-600",
+        violet: "text-violet-600"
+    };
+
+    // Componente de ícone
+    function GoalIcon({ accent }) {
+        if (accent === "green") return <div className="size-6 rounded-full border-4 border-current"></div>;
+        if (accent === "gold") return <div className="w-8 h-3 rounded-full bg-current"></div>;
+        if (accent === "sky") return <div className="w-6 h-6 rounded-full border-b-4 border-current"></div>;
+        if (accent === "rose") return <div className="w-6 h-6 rounded-md rotate-45 border-4 border-current"></div>;
+        return <div className="w-6 h-6 rounded-t-full rounded-br-full bg-current"></div>;
+    }
+
+    // Componente Macro
+    function Macro({ label, value, pct, bar }) {
+        return (
+            <div className="text-center">
+                <p className="text-[10px] uppercase font-bold opacity-40 mb-1 tracking-wider">{label}</p>
+                <p className="text-2xl font-black">{value}</p>
+                <div className="h-1.5 w-full bg-stone-100 mt-2 rounded-full overflow-hidden">
+                    <div className={`h-full ${bar} transition-all duration-500`} style={{ width: `${pct}%` }}></div>
+                </div>
+            </div>
+        );
+    }
+
+    // Componente Principal
+    function App() {
+        const [activeId, setActiveId] = useState("post-workout");
+        const active = useMemo(() => GOALS.find((g) => g.id === activeId) ?? GOALS[0], [activeId]);
+
+        return (
+            <div className="min-h-screen bg-brand-bg font-sans text-brand-dark">
+                {/* Navbar */}
+                <nav className="px-8 py-6 flex justify-between items-center bg-white border-b border-black/5">
+                    <div className="flex items-center gap-2">
+                        <div className="size-10 bg-brand-gold rounded-full grid place-items-center font-black text-2xl">M</div>
+                        <span className="font-extrabold tracking-tight text-xl">SmartMenu</span>
+                    </div>
+                    <div className="hidden md:flex gap-6 font-semibold text-sm">
+                        <span className="text-brand-green">Smart Match</span>
+                        <span className="opacity-40">Cardápio Completo</span>
+                        <span className="opacity-40">Recompensas</span>
+                    </div>
+                    <div className="bg-brand-dark text-white px-5 py-2 rounded-full text-sm font-bold">Meus Stats</div>
+                </nav>
+
+                <main className="max-w-6xl mx-auto pt-16 pb-24 px-6">
+                    {/* Header */}
+                    <header className="text-center mb-14">
+                        <span className="inline-block bg-brand-green/10 text-brand-green text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-4">
+                            Menu Inteligente Predictivo
+                        </span>
+                        <h1 className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight text-balance">
+                            O que o seu corpo <span className="text-brand-green">precisa</span> hoje?
+                        </h1>
+                        <p className="text-lg opacity-60 max-w-xl mx-auto">
+                            Selecione seu objetivo e a IA do McDonald's recalcula ingredientes, macros e bebidas em tempo real.
+                        </p>
+                    </header>
+
+                    {/* Botões de objetivos */}
+                    <section className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-16">
+                        {GOALS.map((goal) => {
+                            const isActive = goal.id === activeId;
+                            return (
+                                <button
+                                    key={goal.id}
+                                    onClick={() => setActiveId(goal.id)}
+                                    className={`group bg-white p-6 rounded-3xl border-2 flex flex-col items-center text-center transition-all ${
+                                        isActive
+                                            ? `${ACCENT_RING[goal.accent]} shadow-xl ring-4 -translate-y-1`
+                                            : "border-black/5 opacity-70 hover:opacity-100 hover:-translate-y-0.5"
+                                    }`}
+                                >
+                                    <div className={`size-14 rounded-2xl mb-4 grid place-items-center ${ACCENT_DOT[goal.accent]}`}>
+                                        <GoalIcon accent={goal.accent} />
+                                    </div>
+                                    <h3 className="text-base font-bold mb-1">{goal.name}</h3>
+                                    <p className="text-xs opacity-60 leading-relaxed">{goal.tagline}</p>
+                                </button>
+                            );
+                        })}
+                    </section>
+
+                    {/* Card principal do produto */}
+                    <section className="bg-white rounded-[40px] overflow-hidden shadow-2xl shadow-black/5 grid md:grid-cols-2">
+                        {/* Imagem */}
+                        <div className="p-8 md:p-12 bg-stone-50">
+                            <div className="mb-8 flex items-center gap-3 flex-wrap">
+                                <span className="bg-brand-green text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                                    Sugestão IA
+                                </span>
+                                <span className="text-sm font-semibold opacity-40">Baseado em: {active.name}</span>
+                            </div>
+                            <div className="w-full aspect-square bg-white rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="text-8xl mb-4">🍔</div>
+                                    <p className="text-sm text-gray-400">{active.productName}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Informações */}
+                        <div className="p-8 md:p-12">
+                            <h2 className="text-3xl font-extrabold mb-2">{active.productName}</h2>
+                            <p className={`${ACCENT_TEXT[active.accent]} font-bold mb-8`}>{active.productSubtitle}</p>
+
+                            <ul className="space-y-3 mb-10">
+                                {active.swaps.map((s) => (
+                                    <li key={s.title} className="flex justify-between items-center gap-4 p-4 bg-brand-bg rounded-2xl">
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-sm">{s.title}</p>
+                                            <p className="text-xs opacity-50">{s.detail}</p>
+                                        </div>
+                                        <span className={`text-xs font-bold whitespace-nowrap ${s.tone === "remove" ? "text-rose-500" : "text-brand-green"}`}>
+                                            {s.tag}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="grid grid-cols-3 gap-4 mb-10">
+                                <Macro label="Proteína" value={`${active.macros.protein}g`} pct={active.proteinPct} bar="bg-brand-green" />
+                                <Macro label="Carboidrato" value={`${active.macros.carbs}g`} pct={active.carbsPct} bar="bg-brand-gold" />
+                                <Macro label="Calorias" value={`${active.macros.kcal}`} pct={active.kcalPct} bar="bg-brand-dark" />
+                            </div>
+
+                            <button className="w-full bg-brand-dark text-white py-5 rounded-2xl font-bold text-lg hover:bg-black transition-all">
+                                Adicionar ao Pedido - {active.price}
+                            </button>
+                        </div>
+                    </section>
+
+                    {/* Passo a passo */}
+                    <section className="mt-24 grid md:grid-cols-3 gap-6 text-center">
+                        {[
+                            { n: "01", t: "Escolha seu objetivo", d: "Pós-treino, energia, leveza, foco ou indulgência." },
+                            { n: "02", t: "IA reformula o cardápio", d: "Ingredientes, porções e bebidas ajustados na hora." },
+                            { n: "03", t: "Pronto em minutos", d: "A rapidez do McDonald's, com a precisão do seu corpo." }
+                        ].map((s) => (
+                            <div key={s.n} className="p-8 bg-white rounded-3xl border border-black/5">
+                                <div className="text-4xl font-black text-brand-gold mb-3">{s.n}</div>
+                                <h3 className="font-bold text-lg mb-2">{s.t}</h3>
+                                <p className="text-sm opacity-60">{s.d}</p>
+                            </div>
+                        ))}
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="mt-24 py-16 px-8 bg-brand-dark text-white rounded-[40px] text-center">
+                        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-balance">
+                            Fast food. <span className="text-brand-gold">Smart energy.</span>
+                        </h2>
+                        <p className="opacity-70 max-w-xl mx-auto">
+                            A nova era do McDonald's: a praticidade que você ama, alinhada com o que o seu corpo realmente pede.
+                        </p>
+                    </footer>
+                </main>
+            </div>
+        );
+    }
+
+    // Renderiza o app
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+</script>
+
+</body>
+</html>
